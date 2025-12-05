@@ -6,13 +6,11 @@ const { PrismaClient } = require('@prisma/client');
 const app = express();
 const prisma = new PrismaClient();
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(morgan('dev'));
 
-// Test Route (Health Check)
 app.get('/', (req, res) => {
   res.status(200).json({
     success: true,
@@ -21,7 +19,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
