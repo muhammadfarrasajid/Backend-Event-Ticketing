@@ -1,10 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const { PrismaClient } = require('@prisma/client');
+const authRoutes = require('./routes/auth.route');
 
 const app = express();
-const prisma = new PrismaClient();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -18,6 +17,8 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+app.use('/api/auth', authRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
