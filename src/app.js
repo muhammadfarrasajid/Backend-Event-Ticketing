@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const authRoutes = require('./routes/auth.route');
 const categoryRoutes = require('./routes/category.route');
 const eventRoutes = require('./routes/event.route');
+const ticketRoutes = require('./routes/ticket.route');
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/tickets', ticketRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
