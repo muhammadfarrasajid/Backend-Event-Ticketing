@@ -1,27 +1,66 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-// Get All Events (Public) - Nanti kita tambah pagination disini
 const getEvents = async (req, res, next) => {
   try {
-    const events = await prisma.event.findMany({
-      include: {
-        category: { select: { name: true } }
-      },
-      orderBy: { date: 'asc' }
-    });
+    const { page = 1, limit = 10, search, category, sortBy = 'date', order = 'asc' } = req.query;
+
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const whereClause = {};
+
+    if (search) {
+      whereClause.OR = [
+        { title: { contains: search } },
+        { description: { contains: search } },
+        { location: { contains: search } }
+      ];
+    }
+
+    if (category) {
+      whereClause.category = {
+        name: { contains: category }
+      };
+    }
+
+    const orderBy = {};
+    if (sortBy === 'price' || sortBy === 'date' || sortBy === 'stock') {
+      orderBy[sortBy] = order === 'desc' ? 'desc' : 'asc';
+    } else {
+      orderBy.date = 'asc';
+    }
+
+    const [events, total] = await prisma.$transaction([
+      prisma.event.findMany({
+        where: whereClause,
+        skip: skip,
+        take: limitNumber,
+        orderBy: orderBy,
+        include: {
+          category: { select: { name: true } }
+        }
+      }),
+      prisma.event.count({ where: whereClause })
+    ]);
 
     res.status(200).json({
       success: true,
       message: 'Events retrieved successfully',
       data: events,
+      pagination: {
+        total,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(total / limitNumber)
+      }
     });
   } catch (error) {
     next(error);
   }
 };
 
-// Get Single Event Detail (Public)
 const getEventById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -48,7 +87,6 @@ const getEventById = async (req, res, next) => {
   }
 };
 
-// Create Event (Admin Only)
 const createEvent = async (req, res, next) => {
   try {
     const { title, description, date, location, price, stock, categoryId } = req.body;
@@ -79,7 +117,6 @@ const createEvent = async (req, res, next) => {
   }
 };
 
-// Update Event (Admin Only)
 const updateEvent = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -111,7 +148,6 @@ const updateEvent = async (req, res, next) => {
   }
 };
 
-// Delete Event (Admin Only)
 const deleteEvent = async (req, res, next) => {
   try {
     const { id } = req.params;
