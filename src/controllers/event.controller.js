@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const { createEventSchema, updateEventSchema } = require('../validators/event.validator');
 const prisma = new PrismaClient();
 
 const getEvents = async (req, res, next) => {
@@ -89,11 +90,12 @@ const getEventById = async (req, res, next) => {
 
 const createEvent = async (req, res, next) => {
   try {
-    const { title, description, date, location, price, stock, categoryId } = req.body;
-
-    if (!title || !date || !price || !categoryId) {
-      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    const { error } = createEventSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ success: false, message: error.details[0].message });
     }
+
+    const { title, description, date, location, price, stock, categoryId } = req.body;
 
     const event = await prisma.event.create({
       data: {
@@ -120,6 +122,12 @@ const createEvent = async (req, res, next) => {
 const updateEvent = async (req, res, next) => {
   try {
     const { id } = req.params;
+    
+    const { error } = updateEventSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ success: false, message: error.details[0].message });
+    }
+
     const { title, description, date, location, price, stock, categoryId } = req.body;
 
     const existing = await prisma.event.findUnique({ where: { id: Number(id) } });

@@ -1,7 +1,8 @@
 const { PrismaClient } = require('@prisma/client');
+const { createCategorySchema } = require('../validators/category.validator');
+
 const prisma = new PrismaClient();
 
-// Get All Categories (Public)
 const getCategories = async (req, res, next) => {
   try {
     const categories = await prisma.category.findMany({
@@ -18,14 +19,14 @@ const getCategories = async (req, res, next) => {
   }
 };
 
-// Create Category (Admin Only)
 const createCategory = async (req, res, next) => {
   try {
-    const { name } = req.body;
-    
-    if (!name) {
-      return res.status(400).json({ success: false, message: 'Name is required' });
+    const { error } = createCategorySchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ success: false, message: error.details[0].message });
     }
+
+    const { name } = req.body;
 
     const category = await prisma.category.create({
       data: { name },
@@ -41,13 +42,17 @@ const createCategory = async (req, res, next) => {
   }
 };
 
-// Update Category (Admin Only)
 const updateCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { error } = createCategorySchema.validate(req.body); 
+    
+    if (error) {
+      return res.status(400).json({ success: false, message: error.details[0].message });
+    }
+
     const { name } = req.body;
 
-    // Cek dulu apakah kategori ada
     const existing = await prisma.category.findUnique({ where: { id: Number(id) } });
     if (!existing) return res.status(404).json({ success: false, message: 'Category not found' });
 
@@ -66,7 +71,6 @@ const updateCategory = async (req, res, next) => {
   }
 };
 
-// Delete Category (Admin Only)
 const deleteCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
