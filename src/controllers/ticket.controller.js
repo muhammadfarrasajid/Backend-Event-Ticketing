@@ -6,8 +6,6 @@ const buyTicket = async (req, res, next) => {
     const { eventId } = req.body;
     const userId = req.user.id;
 
-    if (!eventId) return sendResponse(res, 400, 'Event ID is required');
-
     const result = await prisma.$transaction(async (tx) => {
       const event = await tx.event.findUnique({ where: { id: Number(eventId) } });
       

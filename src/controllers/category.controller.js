@@ -1,13 +1,11 @@
-const prisma = require('../config/database'); // Pastikan sudah pakai config DB
-const { createCategorySchema } = require('../validators/category.validator');
-const { sendResponse } = require('../utils/response.util'); // <-- IMPORT HELPER
+const prisma = require('../config/database');
+const { sendResponse } = require('../utils/response.util');
 
 const getCategories = async (req, res, next) => {
   try {
     const categories = await prisma.category.findMany({
       include: { _count: { select: { events: true } } }
     });
-
     return sendResponse(res, 200, 'Categories retrieved successfully', categories);
   } catch (error) {
     next(error);
@@ -16,13 +14,7 @@ const getCategories = async (req, res, next) => {
 
 const createCategory = async (req, res, next) => {
   try {
-    const { error } = createCategorySchema.validate(req.body);
-    if (error) {
-      return sendResponse(res, 400, error.details[0].message);
-    }
-
     const { name } = req.body;
-
     const category = await prisma.category.create({
       data: { name },
     });
@@ -36,11 +28,6 @@ const createCategory = async (req, res, next) => {
 const updateCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { error } = createCategorySchema.validate(req.body); 
-    
-    if (error) {
-      return sendResponse(res, 400, error.details[0].message);
-    }
 
     const { name } = req.body;
 

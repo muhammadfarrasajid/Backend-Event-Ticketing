@@ -2,14 +2,10 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/database');
 const jwtConfig = require('../config/jwt');
-const { registerSchema, loginSchema } = require('../validators/auth.validator');
 const { sendResponse } = require('../utils/response.util');
 
 const register = async (req, res, next) => {
   try {
-    const { error } = registerSchema.validate(req.body);
-    if (error) return sendResponse(res, 400, error.details[0].message);
-
     const { name, email, password } = req.body;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -31,9 +27,6 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   try {
-    const { error } = loginSchema.validate(req.body);
-    if (error) return sendResponse(res, 400, error.details[0].message);
-
     const { email, password } = req.body;
 
     const user = await prisma.user.findUnique({ where: { email } });

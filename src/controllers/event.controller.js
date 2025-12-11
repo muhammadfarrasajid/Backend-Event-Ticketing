@@ -1,5 +1,4 @@
 const prisma = require('../config/database');
-const { createEventSchema, updateEventSchema } = require('../validators/event.validator');
 const { sendResponse } = require('../utils/response.util');
 
 const getEvents = async (req, res, next) => {
@@ -61,7 +60,6 @@ const getEventById = async (req, res, next) => {
     });
 
     if (!event) return sendResponse(res, 404, 'Event not found');
-
     sendResponse(res, 200, 'Event detail retrieved', event);
   } catch (error) {
     next(error);
@@ -70,11 +68,7 @@ const getEventById = async (req, res, next) => {
 
 const createEvent = async (req, res, next) => {
   try {
-    const { error } = createEventSchema.validate(req.body);
-    if (error) return sendResponse(res, 400, error.details[0].message);
-
     const { title, description, date, location, price, stock, categoryId } = req.body;
-
     const event = await prisma.event.create({
       data: {
         title, description, location,
@@ -94,8 +88,6 @@ const createEvent = async (req, res, next) => {
 const updateEvent = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { error } = updateEventSchema.validate(req.body);
-    if (error) return sendResponse(res, 400, error.details[0].message);
 
     const { title, description, date, location, price, stock, categoryId } = req.body;
 
@@ -126,7 +118,6 @@ const deleteEvent = async (req, res, next) => {
     if (!existing) return sendResponse(res, 404, 'Event not found');
 
     await prisma.event.delete({ where: { id: Number(id) } });
-
     sendResponse(res, 200, 'Event deleted successfully');
   } catch (error) {
     next(error);

@@ -1,13 +1,13 @@
 const express = require('express');
 const cors = require('cors');
-const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/auth.route');
 const categoryRoutes = require('./routes/category.route');
 const eventRoutes = require('./routes/event.route');
 const ticketRoutes = require('./routes/ticket.route');
-const { sendResponse } = require('./utils/response.util');
+const errorHandler = require('./middleware/error.middleware');r
+const loggerMiddleware = require('./middleware/logger.middleware');
 
 const app = express();
 
@@ -25,7 +25,8 @@ app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use(morgan('dev'));
+
+app.use(loggerMiddleware);
 
 app.get('/', (req, res) => {
   res.status(200).json({
@@ -41,18 +42,6 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/tickets', ticketRoutes);
 
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-
-  const statusCode = 500;
-  const message = 'Internal Server Error';
-  const errorDetail = process.env.NODE_ENV === 'development' ? err.message : undefined;
-
-  res.status(statusCode).json({
-    success: false,
-    message: message,
-    error: errorDetail
-  });
-});
+app.use(errorHandler);
 
 module.exports = app;

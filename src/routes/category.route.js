@@ -6,6 +6,8 @@ const {
   deleteCategory 
 } = require('../controllers/category.controller');
 const { authenticate, authorize } = require('../middleware/auth.middleware');
+const validate = require('../middleware/validation.middleware');
+const { createCategorySchema } = require('../validators/category.validator');
 
 const router = express.Router();
 
@@ -13,8 +15,8 @@ const router = express.Router();
 router.get('/', getCategories);
 
 // Protected Routes (Hanya Admin)
-router.post('/', authenticate, authorize('ADMIN'), createCategory);
-router.put('/:id', authenticate, authorize('ADMIN'), updateCategory);
+router.post('/', authenticate, authorize('ADMIN'), validate(createCategorySchema), createCategory);
+router.put('/:id', authenticate, authorize('ADMIN'), validate(createCategorySchema), updateCategory);
 router.delete('/:id', authenticate, authorize('ADMIN'), deleteCategory);
 
 module.exports = router;
