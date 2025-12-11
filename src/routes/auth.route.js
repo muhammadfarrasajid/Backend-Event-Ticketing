@@ -2,7 +2,7 @@ const express = require('express');
 const { register, login, getMe, refreshToken } = require('../controllers/auth.controller');
 const { authenticate } = require('../middleware/auth.middleware');
 const validate = require('../middleware/validation.middleware');
-const { registerSchema, loginSchema } = require('../schemas/auth.schema');
+const { registerSchema, loginSchema } = require('../validators/auth.validator');
 
 const router = express.Router();
 

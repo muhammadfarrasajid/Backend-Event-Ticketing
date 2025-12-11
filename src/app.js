@@ -6,7 +6,7 @@ const authRoutes = require('./routes/auth.route');
 const categoryRoutes = require('./routes/category.route');
 const eventRoutes = require('./routes/event.route');
 const ticketRoutes = require('./routes/ticket.route');
-const errorHandler = require('./middleware/error.middleware');r
+const errorHandler = require('./middleware/error.middleware');
 const loggerMiddleware = require('./middleware/logger.middleware');
 
 const app = express();

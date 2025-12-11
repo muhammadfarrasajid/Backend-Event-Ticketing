@@ -8,7 +8,7 @@ const {
 } = require('../controllers/event.controller');
 const { authenticate, authorize } = require('../middleware/auth.middleware');
 const validate = require('../middleware/validation.middleware');
-const { createEventSchema } = require('../validators/event.validator');
+const { createEventSchema, updateEventSchema } = require('../validators/event.validator');
 
 const router = express.Router();
 
