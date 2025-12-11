@@ -29,9 +29,10 @@ app.use(morgan('dev'));
 
 app.get('/', (req, res) => {
   res.status(200).json({
-    success: true,
-    message: 'Welcome to Event Ticketing API',
-    timestamp: new Date().toISOString()
+    status: 'success',
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
   });
 });
 
