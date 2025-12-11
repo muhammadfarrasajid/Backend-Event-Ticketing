@@ -9,7 +9,6 @@ const eventRoutes = require('./routes/event.route');
 const ticketRoutes = require('./routes/ticket.route');
 
 const app = express();
-const prisma = require('@prisma/client').PrismaClient;
 
 app.use(helmet());
 

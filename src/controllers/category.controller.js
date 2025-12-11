@@ -1,7 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
 const { createCategorySchema } = require('../validators/category.validator');
-
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 
 const getCategories = async (req, res, next) => {
   try {

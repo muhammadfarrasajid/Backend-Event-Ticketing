@@ -1,6 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
 const { createEventSchema, updateEventSchema } = require('../validators/event.validator');
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 
 const getEvents = async (req, res, next) => {
   try {
