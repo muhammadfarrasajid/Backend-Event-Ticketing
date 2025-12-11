@@ -1,16 +1,15 @@
-const { createEventSchema, updateEventSchema } = require('../validators/event.validator');
 const prisma = require('../config/database');
+const { createEventSchema, updateEventSchema } = require('../validators/event.validator');
+const { sendResponse } = require('../utils/response.util');
 
 const getEvents = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, search, category, sortBy = 'date', order = 'asc' } = req.query;
-
     const pageNumber = Number(page);
     const limitNumber = Number(limit);
     const skip = (pageNumber - 1) * limitNumber;
 
     const whereClause = {};
-
     if (search) {
       whereClause.OR = [
         { title: { contains: search } },
@@ -18,15 +17,12 @@ const getEvents = async (req, res, next) => {
         { location: { contains: search } }
       ];
     }
-
     if (category) {
-      whereClause.category = {
-        name: { contains: category }
-      };
+      whereClause.category = { name: { contains: category } };
     }
 
     const orderBy = {};
-    if (sortBy === 'price' || sortBy === 'date' || sortBy === 'stock') {
+    if (['price', 'date', 'stock'].includes(sortBy)) {
       orderBy[sortBy] = order === 'desc' ? 'desc' : 'asc';
     } else {
       orderBy.date = 'asc';
@@ -38,24 +34,19 @@ const getEvents = async (req, res, next) => {
         skip: skip,
         take: limitNumber,
         orderBy: orderBy,
-        include: {
-          category: { select: { name: true } }
-        }
+        include: { category: { select: { name: true } } }
       }),
       prisma.event.count({ where: whereClause })
     ]);
 
-    res.status(200).json({
-      success: true,
-      message: 'Events retrieved successfully',
-      data: events,
-      pagination: {
-        total,
-        page: pageNumber,
-        limit: limitNumber,
-        totalPages: Math.ceil(total / limitNumber)
-      }
-    });
+    const pagination = {
+      total,
+      page: pageNumber,
+      limit: limitNumber,
+      totalPages: Math.ceil(total / limitNumber)
+    };
+
+    sendResponse(res, 200, 'Events retrieved successfully', events, pagination);
   } catch (error) {
     next(error);
   }
@@ -64,24 +55,14 @@ const getEvents = async (req, res, next) => {
 const getEventById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    
     const event = await prisma.event.findUnique({
       where: { id: Number(id) },
-      include: {
-        category: true,
-        _count: { select: { tickets: true } }
-      }
+      include: { category: true, _count: { select: { tickets: true } } }
     });
 
-    if (!event) {
-      return res.status(404).json({ success: false, message: 'Event not found' });
-    }
+    if (!event) return sendResponse(res, 404, 'Event not found');
 
-    res.status(200).json({
-      success: true,
-      message: 'Event detail retrieved',
-      data: event,
-    });
+    sendResponse(res, 200, 'Event detail retrieved', event);
   } catch (error) {
     next(error);
   }
@@ -90,29 +71,21 @@ const getEventById = async (req, res, next) => {
 const createEvent = async (req, res, next) => {
   try {
     const { error } = createEventSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ success: false, message: error.details[0].message });
-    }
+    if (error) return sendResponse(res, 400, error.details[0].message);
 
     const { title, description, date, location, price, stock, categoryId } = req.body;
 
     const event = await prisma.event.create({
       data: {
-        title,
-        description,
+        title, description, location,
         date: new Date(date),
-        location,
         price: Number(price),
         stock: Number(stock),
         categoryId: Number(categoryId),
       },
     });
 
-    res.status(201).json({
-      success: true,
-      message: 'Event created successfully',
-      data: event,
-    });
+    sendResponse(res, 201, 'Event created successfully', event);
   } catch (error) {
     next(error);
   }
@@ -121,35 +94,26 @@ const createEvent = async (req, res, next) => {
 const updateEvent = async (req, res, next) => {
   try {
     const { id } = req.params;
-    
     const { error } = updateEventSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ success: false, message: error.details[0].message });
-    }
+    if (error) return sendResponse(res, 400, error.details[0].message);
 
     const { title, description, date, location, price, stock, categoryId } = req.body;
 
     const existing = await prisma.event.findUnique({ where: { id: Number(id) } });
-    if (!existing) return res.status(404).json({ success: false, message: 'Event not found' });
+    if (!existing) return sendResponse(res, 404, 'Event not found');
 
     const event = await prisma.event.update({
       where: { id: Number(id) },
       data: {
-        title,
-        description,
+        title, description, location,
         date: date ? new Date(date) : undefined,
-        location,
         price: price ? Number(price) : undefined,
         stock: stock ? Number(stock) : undefined,
         categoryId: categoryId ? Number(categoryId) : undefined,
       },
     });
 
-    res.status(200).json({
-      success: true,
-      message: 'Event updated successfully',
-      data: event,
-    });
+    sendResponse(res, 200, 'Event updated successfully', event);
   } catch (error) {
     next(error);
   }
@@ -158,16 +122,12 @@ const updateEvent = async (req, res, next) => {
 const deleteEvent = async (req, res, next) => {
   try {
     const { id } = req.params;
-
     const existing = await prisma.event.findUnique({ where: { id: Number(id) } });
-    if (!existing) return res.status(404).json({ success: false, message: 'Event not found' });
+    if (!existing) return sendResponse(res, 404, 'Event not found');
 
     await prisma.event.delete({ where: { id: Number(id) } });
 
-    res.status(200).json({
-      success: true,
-      message: 'Event deleted successfully',
-    });
+    sendResponse(res, 200, 'Event deleted successfully');
   } catch (error) {
     next(error);
   }

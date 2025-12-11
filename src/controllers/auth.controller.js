@@ -1,52 +1,28 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { registerSchema, loginSchema } = require('../validators/auth.validator');
-const jwtConfig = require('../config/jwt');
 const prisma = require('../config/database');
+const jwtConfig = require('../config/jwt');
+const { registerSchema, loginSchema } = require('../validators/auth.validator');
+const { sendResponse } = require('../utils/response.util');
 
 const register = async (req, res, next) => {
   try {
     const { error } = registerSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.details[0].message,
-      });
-    }
+    if (error) return sendResponse(res, 400, error.details[0].message);
 
     const { name, email, password } = req.body;
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        message: 'Email already registered',
-      });
-    }
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) return sendResponse(res, 409, 'Email already registered');
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role: 'USER',
-      },
+      data: { name, email, password: hashedPassword, role: 'USER' },
     });
 
-    res.status(201).json({
-      success: true,
-      message: 'User registered successfully',
-      data: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+    sendResponse(res, 201, 'User registered successfully', {
+      id: user.id, name: user.name, email: user.email, role: user.role
     });
   } catch (error) {
     next(error);
@@ -56,15 +32,15 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { error } = loginSchema.validate(req.body);
-    if (error) return res.status(400).json({ success: false, message: error.details[0].message });
+    if (error) return sendResponse(res, 400, error.details[0].message);
 
     const { email, password } = req.body;
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    if (!user) return sendResponse(res, 401, 'Invalid email or password');
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    if (!isPasswordValid) return sendResponse(res, 401, 'Invalid email or password');
 
     const accessToken = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
@@ -78,14 +54,9 @@ const login = async (req, res, next) => {
       { expiresIn: jwtConfig.refreshExpiresIn }
     );
 
-    res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      data: {
-        accessToken,
-        refreshToken,
-        user: { id: user.id, name: user.name, email: user.email, role: user.role },
-      },
+    sendResponse(res, 200, 'Login successful', {
+      accessToken, refreshToken,
+      user: { id: user.id, name: user.name, email: user.email, role: user.role },
     });
   } catch (error) {
     next(error);
@@ -95,10 +66,10 @@ const login = async (req, res, next) => {
 const refreshToken = async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
-    if (!refreshToken) return res.status(400).json({ success: false, message: 'Refresh Token is required' });
+    if (!refreshToken) return sendResponse(res, 400, 'Refresh Token is required');
 
     jwt.verify(refreshToken, jwtConfig.refreshSecret, (err, decoded) => {
-      if (err) return res.status(403).json({ success: false, message: 'Invalid or expired Refresh Token' });
+      if (err) return sendResponse(res, 403, 'Invalid or expired Refresh Token');
 
       const newAccessToken = jwt.sign(
         { id: decoded.id, email: decoded.email, role: decoded.role },
@@ -106,11 +77,7 @@ const refreshToken = async (req, res, next) => {
         { expiresIn: jwtConfig.expiresIn }
       );
 
-      res.status(200).json({
-        success: true,
-        message: 'Access token refreshed',
-        data: { accessToken: newAccessToken }
-      });
+      sendResponse(res, 200, 'Access token refreshed', { accessToken: newAccessToken });
     });
   } catch (error) {
     next(error);
@@ -121,27 +88,12 @@ const getMe = async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      }
+      select: { id: true, name: true, email: true, role: true, createdAt: true }
     });
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
-    }
+    if (!user) return sendResponse(res, 404, 'User not found');
 
-    res.status(200).json({
-      success: true,
-      message: 'User profile retrieved',
-      data: user,
-    });
+    sendResponse(res, 200, 'User profile retrieved', user);
   } catch (error) {
     next(error);
   }
