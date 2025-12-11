@@ -1,6 +1,7 @@
 const express = require('express');
 const { 
-  getCategories, 
+  getCategories,
+  getCategoryById,
   createCategory, 
   updateCategory, 
   deleteCategory 
@@ -13,6 +14,7 @@ const router = express.Router();
 
 // Public Route (Semua orang bisa lihat)
 router.get('/', getCategories);
+router.get('/:id', getCategoryById);
 
 // Protected Routes (Hanya Admin)
 router.post('/', authenticate, authorize('ADMIN'), validate(createCategorySchema), createCategory);

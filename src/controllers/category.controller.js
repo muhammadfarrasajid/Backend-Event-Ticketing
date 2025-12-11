@@ -12,6 +12,22 @@ const getCategories = async (req, res, next) => {
   }
 };
 
+const getCategoryById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const category = await prisma.category.findUnique({
+      where: { id: Number(id) },
+      include: { _count: { select: { events: true } } }
+    });
+
+    if (!category) return sendResponse(res, 404, 'Category not found');
+
+    return sendResponse(res, 200, 'Category detail retrieved', category);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const createCategory = async (req, res, next) => {
   try {
     const { name } = req.body;
@@ -28,7 +44,6 @@ const createCategory = async (req, res, next) => {
 const updateCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
-
     const { name } = req.body;
 
     const existing = await prisma.category.findUnique({ where: { id: Number(id) } });
@@ -56,10 +71,10 @@ const deleteCategory = async (req, res, next) => {
       where: { id: Number(id) },
     });
 
-    return sendResponse(res, 200, 'Category deleted successfully');
+    return sendResponse(res, 204, 'Category deleted successfully');
   } catch (error) {
     next(error);
   }
 };
 
-module.exports = { getCategories, createCategory, updateCategory, deleteCategory };
+module.exports = { getCategories, getCategoryById, createCategory, updateCategory, deleteCategory };

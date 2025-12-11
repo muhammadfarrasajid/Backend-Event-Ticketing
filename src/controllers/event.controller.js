@@ -4,8 +4,14 @@ const { sendResponse } = require('../utils/response.util');
 const getEvents = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, search, category, sortBy = 'date', order = 'asc' } = req.query;
+    
     const pageNumber = Number(page);
-    const limitNumber = Number(limit);
+    let limitNumber = Number(limit);
+
+    if (limitNumber > 50) {
+      limitNumber = 50;
+    }
+
     const skip = (pageNumber - 1) * limitNumber;
 
     const whereClause = {};
@@ -88,7 +94,6 @@ const createEvent = async (req, res, next) => {
 const updateEvent = async (req, res, next) => {
   try {
     const { id } = req.params;
-
     const { title, description, date, location, price, stock, categoryId } = req.body;
 
     const existing = await prisma.event.findUnique({ where: { id: Number(id) } });
@@ -118,7 +123,8 @@ const deleteEvent = async (req, res, next) => {
     if (!existing) return sendResponse(res, 404, 'Event not found');
 
     await prisma.event.delete({ where: { id: Number(id) } });
-    sendResponse(res, 200, 'Event deleted successfully');
+
+    sendResponse(res, 204, 'Event deleted successfully');
   } catch (error) {
     next(error);
   }
