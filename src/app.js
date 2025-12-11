@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth.route');
 const categoryRoutes = require('./routes/category.route');
 const eventRoutes = require('./routes/event.route');
 const ticketRoutes = require('./routes/ticket.route');
+const { sendResponse } = require('./utils/response.util');
 
 const app = express();
 
@@ -42,10 +43,15 @@ app.use('/api/tickets', ticketRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({
+
+  const statusCode = 500;
+  const message = 'Internal Server Error';
+  const errorDetail = process.env.NODE_ENV === 'development' ? err.message : undefined;
+
+  res.status(statusCode).json({
     success: false,
-    message: 'Internal Server Error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    message: message,
+    error: errorDetail
   });
 });
 
