@@ -45,10 +45,10 @@ const getEvents = async (req, res, next) => {
     ]);
 
     const pagination = {
-      total,
-      page: pageNumber,
-      limit: limitNumber,
-      totalPages: Math.ceil(total / limitNumber)
+      totalRecords: total,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(total / limitNumber),
+      limit: limitNumber
     };
 
     sendResponse(res, 200, 'Events retrieved successfully', events, pagination);
