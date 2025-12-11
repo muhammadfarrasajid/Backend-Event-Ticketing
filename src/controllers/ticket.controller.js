@@ -10,6 +10,7 @@ const buyTicket = async (req, res, next) => {
 
     const result = await prisma.$transaction(async (tx) => {
       const event = await tx.event.findUnique({ where: { id: Number(eventId) } });
+      
       if (!event) throw new Error('Event not found');
       if (event.stock < 1) throw new Error('Tickets are sold out');
 
@@ -19,8 +20,14 @@ const buyTicket = async (req, res, next) => {
       });
 
       const newTicket = await tx.ticket.create({
-        data: { userId: userId, eventId: Number(eventId), status: 'CONFIRMED' },
-        include: { event: { select: { title: true, date: true, location: true } } }
+        data: {
+          userId: userId,
+          eventId: Number(eventId),
+          status: 'CONFIRMED'
+        },
+        include: {
+          event: { select: { title: true, date: true, location: true } }
+        }
       });
 
       return newTicket;
@@ -39,9 +46,14 @@ const buyTicket = async (req, res, next) => {
 const getMyTickets = async (req, res, next) => {
   try {
     const userId = req.user.id;
+
     const tickets = await prisma.ticket.findMany({
       where: { userId: userId },
-      include: { event: { select: { title: true, date: true, location: true, price: true } } },
+      include: {
+        event: {
+          select: { title: true, date: true, location: true, price: true }
+        }
+      },
       orderBy: { createdAt: 'desc' }
     });
 
@@ -68,7 +80,9 @@ const cancelTicket = async (req, res, next) => {
     }
 
     await prisma.$transaction([
-      prisma.ticket.delete({ where: { id: Number(id) } }),
+      prisma.ticket.delete({
+        where: { id: Number(id) }
+      }),
       prisma.event.update({
         where: { id: ticket.eventId },
         data: { stock: { increment: 1 } }
@@ -76,6 +90,7 @@ const cancelTicket = async (req, res, next) => {
     ]);
 
     sendResponse(res, 200, 'Ticket cancelled successfully');
+
   } catch (error) {
     next(error);
   }
