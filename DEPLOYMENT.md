@@ -1,14 +1,18 @@
 # Deployment Report
 
-## 🌐 Production Details
-- **URL API**: `http://54.197.200.110` (Tanpa Port, via Nginx Reverse Proxy)
-- **Health Check**: `http://54.197.200.110/`
-- **IP Address**: `54.197.200.110`
-- **Platform**: AWS EC2 (Learner Lab)
+## 1. Project Information
+- **Repository GitHub**: `https://github.com/muhammadfarrasajid/Backend-Event-Ticketing.git`
+- **Production URL**: `http://107.21.128.123`
+- **Health Check URL**: `http://107.21.128.123/`
+
+## 2. AWS EC2 Details
+- **IP Address**: `107.21.128.123`
+- **Instance ID**: `i-026fb6d1404fc1bf4` 
+- **Region**: `United States (N. Virginia)`
 - **OS**: Ubuntu Server 22.04 LTS
 - **Instance Type**: t2.micro
 
-## 🔑 Test Credentials
+## 3. Test Credentials
 Gunakan akun berikut untuk pengujian autentikasi dan fitur admin:
 
 | Role | Email | Password |
@@ -18,20 +22,20 @@ Gunakan akun berikut untuk pengujian autentikasi dan fitur admin:
 
 ---
 
-## 📋 Langkah Deployment
+## 4. Langkah Deployment (Step-by-Step)
 
-### 1. Persiapan Server (AWS EC2)
+### Step 1: Persiapan Server
 1. Launch Instance Ubuntu 22.04 di AWS Academy.
-2. Setup Security Group:
-   - Allow SSH (Port 22)
-   - Allow HTTP (Port 80)
-   - Allow Custom TCP (Port 3000)
+2. Setup Security Group (Inbound Rules):
+   - SSH (Port 22) - My IP/Anywhere
+   - HTTP (Port 80) - Anywhere
+   - Custom TCP (Port 3000) - Anywhere
 3. Connect via SSH:
    ```bash
-   ssh -i "labsuser.pem" ubuntu@<public-ip>
+   ssh -i "labsuser.pem" ubuntu@107.21.128.123
    ```
 
-### 2. Setup Environment
+### Step 2: Setup Environment
 1. Update Package:
 ```bash
 sudo apt update && sudo apt upgrade -y
@@ -47,7 +51,7 @@ sudo apt install git nginx -y
 sudo npm install -g pm2
 ```
 
-### 3. Instalasi Aplikasi
+### Step 3: Instalasi Aplikasi
 1. Clone Repository:
 ```bash
 git clone https://github.com/muhammadfarrasajid/Backend-Event-Ticketing.git
@@ -75,7 +79,7 @@ npx prisma migrate deploy
 npx prisma db seed
 ```
 
-### 4. Konfigurasi Nginx (Reverse Proxy)
+### Step 4: Konfigurasi Nginx (Reverse Proxy)
 - File konfigurasi di /etc/nginx/sites-available/backend-api:
 ```bash
 server {
@@ -92,11 +96,16 @@ server {
     }
 }
 ```
+- Link ke sites-enabled dan restart Nginx:
+```bash
+sudo ln -s /etc/nginx/sites-available/backend-api /etc/nginx/sites-enabled/
+sudo systemctl restart nginx
+```
 
-### 5. Menjalankan Aplikasi (PM2)
+### Step 5: Menjalankan Aplikasi (PM2)
 1. Start Aplikasi:
 ```bash
-pm2 start src/app.js --name "backend-api"
+pm2 start src/server.js --name "backend-api"
 ```
 2. Setup Startup Script (Auto-restart saat reboot):
 ```bash
@@ -104,18 +113,24 @@ pm2 startup
 pm2 save
 ```
 
-## 🛠️ Monitoring & Maintenance
+## 5. Langkah Verifikasi
+Untuk memastikan deployment berhasil, lakukan tes berikut:
+   - Health Check: Akses http://107.21.128.123/ di browser. Harus me-return JSON { "status": "success", "message":"Server is running","timestamp":"","uptime":}.
+   - API Login: Gunakan Postman ke POST http://107.21.128.123/api/auth/login dengan credential Admin di atas.
+   - Cek Database: Pastikan data seed (seperti kategori/event awal) muncul saat akses GET /api/events.
+
+## 6. Monitoring & Maintenance
 Cara Monitoring
 - Cek Status: pm2 status
-- Cek Logs: pm2 logs --lines 50
-- Monitor Resource: pm2 monit (CPU/Memory)
+- Cek Logs Real-time: pm2 logs --lines 50
+- Monitor Resource (CPU/RAM): pm2 monit
 
-Prosedur Update Aplikasi
+Maintenance (Prosedur Update)
 - Jika ada perubahan kode dari GitHub:
-   1. git pull origin main
-   2. npm install (jika ada dependency baru)
-   3. npx prisma migrate deploy (jika ada perubahan DB)
-   4. pm2 restart backend-api
+   - git pull origin main
+   - npm install (jika ada dependency baru)
+   - npx prisma migrate deploy (jika ada perubahan DB)
+   - pm2 restart backend-api
 
 Troubleshooting (Known Issues)
 - Issue: Error 500 "expiresIn should be a number" saat login. Penyebab: Ketidakcocokan nama variabel antara kode (src/config/jwt.js) dan file .env. Kode menggunakan JWT_EXPIRES_IN, sedangkan di .env awalnya tertulis JWT_ACCESS_EXPIRATION.
