@@ -1,8 +1,8 @@
 # Deployment Report
 
 ## 🌐 Production Details
-- **URL API**: `http://[MASUKKAN_IP_PUBLIC_AWS_DISINI]:3000`
-- **IP Address**: `[MASUKKAN_IP_PUBLIC_AWS_DISINI]`
+- **URL API**: `http://54.197.200.110:3000`
+- **IP Address**: `54.197.200.110`
 - **Platform**: AWS EC2 (Learner Lab)
 - **OS**: Ubuntu Server 22.04 LTS
 - **Instance Type**: t2.micro
@@ -18,16 +18,23 @@
 3. Connect via SSH:
    ```bash
    ssh -i "labsuser.pem" ubuntu@<public-ip>
+   ```
 
 ### 2. Setup Environment
 1. Update Package:
    ```bash
    sudo apt update && sudo apt upgrade -y
-2. Install Node.js v18 & NPM
+   ```
+2. Install Node.js v18 & NPM:
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+   sudo apt install nodejs -y
+   ```
 3. Install Git & PM2:
    ```bash
    sudo apt install git
    sudo npm install -g pm2
+   ```
 
 ### 3. Instalasi Aplikasi
 1. Clone Repository:
@@ -40,7 +47,7 @@
    npm install
    ```
 3. Setup Environment Variables:
-   Buat file .env dan isi sesuai .env.example tapi dengan data production.
+   - Buat file .env dan isi sesuai .env.example tapi dengan data production.
 4. Setup Database:
    ```bash
    npx prisma generate
