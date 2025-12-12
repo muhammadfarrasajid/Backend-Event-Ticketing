@@ -2,6 +2,13 @@
 
 Backend REST API untuk platform manajemen event dan penjualan tiket. Project ini dibangun menggunakan Node.js, Express, dan Prisma ORM dengan database SQLite (Development).
 
+## 🌐 Live Demo (Production)
+Aplikasi ini telah di-deploy ke AWS EC2 menggunakan Elastic IP.
+
+- **Base URL**: `http://107.21.128.123/api`
+- **Health Check**: `http://107.21.128.123/`
+- **Dokumentasi Deployment**: Lihat [DEPLOYMENT.md](./DEPLOYMENT.md)
+
 ## 🚀 Fitur Utama
 
 - **Otentikasi & Otorisasi**: Register, Login, Refresh Token (JWT), dan Role-Based Access Control (Admin vs User).
