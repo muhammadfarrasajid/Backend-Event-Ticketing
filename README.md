@@ -55,7 +55,7 @@ Backend REST API untuk platform manajemen event dan penjualan tiket. Project ini
    ```bash
    npm run dev
    ```
-   Server akan berjalan di http://localhost:3000.
+   - Server akan berjalan di http://localhost:3000.
 
 ## 🧪 Testing
 Gunakan Postman untuk menguji endpoint. Koleksi endpoint lengkap dapat dilihat di file API-DOCS.md.
