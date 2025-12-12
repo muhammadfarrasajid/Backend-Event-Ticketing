@@ -2,7 +2,7 @@
 
 ## Base URL
 - Development: `http://localhost:3000/api`
-- Production: `http://[AWS_PUBLIC_IP]/api`
+- Production: `http://107.21.128.123/api`
 
 ## 1. Authentication (`/auth`)
 
